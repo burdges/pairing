@@ -141,7 +141,10 @@ pub trait CurveProjective:
 
     /// Normalizes a slice of projective elements so that
     /// conversion to affine is cheap.
-    fn batch_normalization(v: &mut [Self]);
+    fn batch_normalization<II: ?Sized>(v: &mut II)
+	where for<'a> &'a mut II: IntoIterator<Item = &'a mut Self>,
+	      for<'a> <&'a mut II as IntoIterator>::IntoIter: DoubleEndedIterator+ExactSizeIterator;
+		  // TODO: Simplify using  https://github.com/rust-lang/rfcs/pull/2289
 
     /// Checks if the point is already "normalized" so that
     /// cheap affine conversion is possible.

@@ -334,16 +334,18 @@ macro_rules! curve_impl {
                 self.is_zero() || self.z == $basefield::one()
             }
 
-            fn batch_normalization(v: &mut [Self])
+            fn batch_normalization<II: ?Sized>(v: &mut II)
+			where for<'a> &'a mut II: IntoIterator<Item = &'a mut Self>,
+			      for<'a> <&'a mut II as IntoIterator>::IntoIter: DoubleEndedIterator+ExactSizeIterator
             {
                 // Montgomery’s Trick and Fast Implementation of Masked AES
                 // Genelle, Prouff and Quisquater
                 // Section 3.2
 
                 // First pass: compute [a, ab, abc, ...]
-                let mut prod = Vec::with_capacity(v.len());
+                let mut prod = Vec::with_capacity(v.into_iter().len());
                 let mut tmp = $basefield::one();
-                for g in v.iter_mut()
+                for g in v.into_iter()
                           // Ignore normalized elements
                           .filter(|g| !g.is_normalized())
                 {
@@ -355,7 +357,7 @@ macro_rules! curve_impl {
                 tmp = tmp.inverse().unwrap(); // Guaranteed to be nonzero.
 
                 // Second pass: iterate backwards to compute inverses
-                for (g, s) in v.iter_mut()
+                for (g, s) in v.into_iter()
                                // Backwards
                                .rev()
                                // Ignore normalized elements
@@ -372,7 +374,7 @@ macro_rules! curve_impl {
                 }
 
                 // Perform affine transformations
-                for g in v.iter_mut()
+                for g in v.into_iter()
                           .filter(|g| !g.is_normalized())
                 {
                     let mut z = g.z; // 1/z

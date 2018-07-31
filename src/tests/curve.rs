@@ -375,7 +375,7 @@ fn random_transformation_tests<G: CurveProjective>() {
         let expected_v = v.iter()
             .map(|v| v.into_affine().into_projective())
             .collect::<Vec<_>>();
-        G::batch_normalization(&mut v);
+        G::batch_normalization(v.as_mut_slice());
 
         for i in &v {
             assert!(i.is_normalized());
